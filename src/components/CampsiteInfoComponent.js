@@ -3,6 +3,7 @@ import { Card, CardImg, CardText, CardBody, Breadcrumb, BreadcrumbItem,
 import React, { Component } from 'react';
 import { Control, LocalForm, Errors } from 'react-redux-form';
 import { Link } from 'react-router-dom';
+import { Loading } from './LoadingComponent';
 
 
 const required = val => val && val.length;
@@ -35,8 +36,8 @@ class CommentForm extends Component {
      }
 
      handleSubmit(values) {
-        console.log('Current state is: ' + JSON.stringify(values));
-        alert('Current state is: ' + JSON.stringify(values));
+        this.toggleModal();
+        this.props.addComment(this.props.campsiteId, values.rating, values.author, values.text);
     }
    
      render() {
@@ -110,7 +111,7 @@ function RenderCampsite({campsite}) {
         )
     }
 
-function RenderComments({comments}) {
+function RenderComments({comments, addComment, campsiteId}) {
     if(comments != null || undefined) {
         return(
             <div className="col-md-5 m-1">
@@ -123,15 +124,39 @@ function RenderComments({comments}) {
                            { year: 'numeric', month: 'short', day: '2-digit'})
                             .format(new Date(Date.parse(comment.date)))}</p>
                      </div>
+               
                   )}
-                    <CommentForm />
+                  <CommentForm campsiteId={campsiteId} addComment={addComment} />
             </div>
         );
     }
     return <div />;
 }
 
+
+
 function CampsiteInfo(props) {
+    if (props.isLoading) {
+        return (
+            <div className="container">
+                <div className="row">
+                    <Loading />
+                </div>
+            </div>
+        );
+    }
+    if (props.errMess) {
+        return (
+            <div className="container">
+                <div className="row">
+                    <div className="col">
+                        <h4>{props.errMess}</h4>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
     if (props.campsite) {
         return (
             <div className="container">
@@ -148,7 +173,11 @@ function CampsiteInfo(props) {
 
                 <div className="row">
                     <RenderCampsite campsite={props.campsite} />
-                    <RenderComments comments={props.comments} />
+                    <RenderComments 
+                        comments={props.comments}
+                        addComment={props.addComment}
+                        campsiteId={props.campsite.id}
+                    />
                 </div>
             </div>
         );
